@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
+import { Edit3, Eye, Download } from 'lucide-react';
 import { initialResumeData, defaultStyleSettings } from './data/initialResumeData';
 import ResumePaper from './components/ResumePaper';
 import ControlsSidebar from './components/ControlsSidebar';
@@ -14,7 +15,31 @@ export default function App() {
   const [zoomScale, setZoomScale] = useState(0.95);
   const [pageOverflowStatus, setPageOverflowStatus] = useState({ heightPercent: 100, isOverflow: false });
 
+  // Mobile Responsiveness States
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [mobileViewMode, setMobileViewMode] = useState('editor'); // 'editor' or 'preview'
+
   const paperRef = useRef(null);
+
+  // Resize listener for mobile viewport & zoom scaling
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+
+      if (mobile) {
+        // Auto scale standard A4 width (794px) to fit mobile screen width
+        const autoScale = Math.min(0.95, Math.max(0.35, (window.innerWidth - 24) / 794));
+        setZoomScale(parseFloat(autoScale.toFixed(2)));
+      } else {
+        setZoomScale(0.95);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Monitor Paper Height vs Standard A4 Page (1122.5px height at 96 DPI)
   useEffect(() => {
@@ -116,7 +141,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      {/* Top Header Navbar matching user screenshot */}
+      {/* Top Header Navbar */}
       <TopNavbar
         activeNavTab={activeNavTab}
         setActiveNavTab={setActiveNavTab}
@@ -125,66 +150,151 @@ export default function App() {
         onAutoFitPage={handleAutoFitPage}
         zoomScale={zoomScale}
         setZoomScale={setZoomScale}
+        mobileViewMode={mobileViewMode}
+        setMobileViewMode={setMobileViewMode}
       />
 
       {/* Main Workspace Layout */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Dual Rail Left Sidebar Editor */}
-        <ControlsSidebar
-          activeNavTab={activeNavTab}
-          setActiveNavTab={setActiveNavTab}
-          resumeData={resumeData}
-          setResumeData={setResumeData}
-          styleSettings={styleSettings}
-          setStyleSettings={setStyleSettings}
-          onResetData={handleResetData}
-          onAutoFitPage={handleAutoFitPage}
-          pageOverflowStatus={pageOverflowStatus}
-        />
-
-        {/* Center Live Document Preview Container */}
-        <main
-          className="print-area-wrapper"
-          style={{
-            flex: 1,
-            backgroundColor: '#eae8e3',
-            overflow: 'auto',
-            padding: '30px 20px 80px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            position: 'relative'
-          }}
-        >
-          {/* Floating formatting bubble for direct inline edits */}
-          <FloatingFormattingBar
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {/* Desktop Dual Rail / Mobile Fullscreen Sidebar Editor */}
+        {(!isMobile || mobileViewMode === 'editor') && (
+          <ControlsSidebar
+            activeNavTab={activeNavTab}
+            setActiveNavTab={setActiveNavTab}
+            resumeData={resumeData}
+            setResumeData={setResumeData}
             styleSettings={styleSettings}
             setStyleSettings={setStyleSettings}
+            onResetData={handleResetData}
+            onAutoFitPage={handleAutoFitPage}
+            pageOverflowStatus={pageOverflowStatus}
           />
+        )}
 
-          {/* Scalable Container */}
-          <div style={{
-            transform: `scale(${zoomScale})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.15s ease-out',
-            position: 'relative'
-          }}>
-            <ResumePaper
-              paperRef={paperRef}
-              resumeData={resumeData}
+        {/* Center Live Document Preview Container */}
+        {(!isMobile || mobileViewMode === 'preview') && (
+          <main
+            className="print-area-wrapper"
+            style={{
+              flex: 1,
+              backgroundColor: '#eae8e3',
+              overflow: 'auto',
+              padding: isMobile ? '16px 8px 100px 8px' : '30px 20px 80px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              position: 'relative',
+              width: '100%'
+            }}
+          >
+            {/* Floating formatting bubble for direct inline edits */}
+            <FloatingFormattingBar
               styleSettings={styleSettings}
-              updateResumeData={setResumeData}
-              isEditing={true}
+              setStyleSettings={setStyleSettings}
             />
 
-            {/* A4 Printable Page Boundary Line indicator */}
-            <div className="no-print page-break-line">
-              <span className="page-break-label">
-                A4 Standard Page 1 Cutoff Line (297mm)
-              </span>
+            {/* Scalable Container */}
+            <div style={{
+              transform: `scale(${zoomScale})`,
+              transformOrigin: 'top center',
+              transition: 'transform 0.15s ease-out',
+              position: 'relative'
+            }}>
+              <ResumePaper
+                paperRef={paperRef}
+                resumeData={resumeData}
+                styleSettings={styleSettings}
+                updateResumeData={setResumeData}
+                isEditing={true}
+              />
+
+              {/* A4 Printable Page Boundary Line indicator */}
+              <div className="no-print page-break-line">
+                <span className="page-break-label">
+                  A4 Standard Page 1 Cutoff Line (297mm)
+                </span>
+              </div>
             </div>
+          </main>
+        )}
+
+        {/* Floating Mobile Bottom Action Bar */}
+        {isMobile && (
+          <div className="no-print" style={{
+            position: 'fixed',
+            bottom: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 99,
+            backgroundColor: '#18181b',
+            color: '#ffffff',
+            borderRadius: '30px',
+            padding: '6px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
+          }}>
+            {mobileViewMode === 'editor' ? (
+              <button
+                onClick={() => setMobileViewMode('preview')}
+                style={{
+                  background: '#7c3aed',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Eye size={15} /> Preview Resume
+              </button>
+            ) : (
+              <button
+                onClick={() => setMobileViewMode('editor')}
+                style={{
+                  background: '#7c3aed',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Edit3 size={15} /> Edit Content & Theme
+              </button>
+            )}
+
+            <button
+              onClick={handleExportPdf}
+              style={{
+                background: '#ffffff',
+                color: '#18181b',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <Download size={14} /> PDF
+            </button>
           </div>
-        </main>
+        )}
       </div>
     </div>
   );

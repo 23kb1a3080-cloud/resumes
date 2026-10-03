@@ -7,6 +7,7 @@ import {
   Wrench,
   FolderGit2,
   Award,
+  Trophy,
   Activity,
   Maximize2,
   Minus,
@@ -331,49 +332,66 @@ export default function ControlsSidebar({
     });
   };
 
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="no-print" style={{
       display: 'flex',
-      height: 'calc(100vh - 56px)',
+      flexDirection: isMobile ? 'column' : 'row',
+      width: isMobile ? '100%' : 'auto',
+      height: isMobile ? '100%' : 'calc(100vh - 56px)',
       backgroundColor: '#eae8e3',
-      borderRight: '1px solid #d6d3dc',
+      borderRight: isMobile ? 'none' : '1px solid #d6d3dc',
       zIndex: 20
     }}>
-      {/* 1. FAR-LEFT VERTICAL NAVIGATION RAIL */}
+      {/* 1. NAVIGATION RAIL (VERTICAL ON DESKTOP, HORIZONTAL ON MOBILE) */}
       <nav style={{
-        width: '125px',
+        width: isMobile ? '100%' : '125px',
         backgroundColor: '#eae8e3',
-        borderRight: '1px solid #e2ded7',
-        padding: '16px 0',
+        borderRight: isMobile ? 'none' : '1px solid #e2ded7',
+        borderBottom: isMobile ? '1px solid #e2ded7' : 'none',
+        padding: isMobile ? '8px' : '16px 0',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '2px',
-        overflowY: 'auto'
+        flexDirection: isMobile ? 'row' : 'column',
+        gap: isMobile ? '6px' : '2px',
+        overflowX: isMobile ? 'auto' : 'hidden',
+        overflowY: isMobile ? 'hidden' : 'auto',
+        flexShrink: 0
       }}>
         {activeNavTab === 'customize' ? (
           <>
             {[
+              { id: 'template', label: 'Templates' },
+              { id: 'colors', label: 'Colors & Theme' },
               { id: 'fontSize', label: 'Font Size' },
               { id: 'indent', label: 'Indentation' },
               { id: 'spacing', label: 'Spacing' },
               { id: 'font', label: 'Font' },
-              { id: 'colors', label: 'Colors' },
               { id: 'layout', label: 'Layout' }
             ].map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveSideCategory(cat.id)}
                 style={{
-                  width: '100%',
-                  padding: '10px 14px',
+                  width: isMobile ? 'auto' : '100%',
+                  padding: isMobile ? '6px 12px' : '10px 14px',
+                  borderRadius: isMobile ? '20px' : '0',
                   background: activeSideCategory === cat.id ? '#ffffff' : 'transparent',
                   color: activeSideCategory === cat.id ? '#7c3aed' : '#57534e',
                   border: 'none',
-                  borderLeft: activeSideCategory === cat.id ? '4px solid #7c3aed' : '4px solid transparent',
+                  borderLeft: (!isMobile && activeSideCategory === cat.id) ? '4px solid #7c3aed' : '4px solid transparent',
+                  boxShadow: (isMobile && activeSideCategory === cat.id) ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                   fontSize: '12px',
                   fontWeight: activeSideCategory === cat.id ? '700' : '500',
                   textAlign: 'left',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {cat.label}
@@ -385,12 +403,14 @@ export default function ControlsSidebar({
             {[
               { id: 'all', label: 'All Sections', icon: FileText },
               { id: 'personal', label: 'Personal Info', icon: User },
-              { id: 'summary', label: 'Summary', icon: FileText },
-              { id: 'experience', label: 'Experience', icon: Briefcase },
+              { id: 'summary', label: 'Objective', icon: FileText },
               { id: 'education', label: 'Education', icon: GraduationCap },
               { id: 'skills', label: 'Skills', icon: Wrench },
               { id: 'projects', label: 'Projects', icon: FolderGit2 },
+              { id: 'experience', label: 'Experience', icon: Briefcase },
               { id: 'certifications', label: 'Certifications', icon: Award },
+              { id: 'achievements', label: 'Achievements', icon: Trophy },
+              { id: 'softSkills', label: 'Soft Skills', icon: User },
               { id: 'activities', label: 'Activities', icon: Activity },
               ...(resumeData.customSections || []).map(cs => ({
                 id: cs.id,
@@ -404,23 +424,26 @@ export default function ControlsSidebar({
                   key={cat.id}
                   onClick={() => setActiveContentCategory(cat.id)}
                   style={{
-                    width: '100%',
-                    padding: '10px 12px',
+                    width: isMobile ? 'auto' : '100%',
+                    padding: isMobile ? '6px 12px' : '10px 12px',
+                    borderRadius: isMobile ? '20px' : '0',
                     background: activeContentCategory === cat.id ? '#ffffff' : 'transparent',
                     color: activeContentCategory === cat.id ? '#7c3aed' : '#57534e',
                     border: 'none',
-                    borderLeft: activeContentCategory === cat.id ? '4px solid #7c3aed' : '4px solid transparent',
+                    borderLeft: (!isMobile && activeContentCategory === cat.id) ? '4px solid #7c3aed' : '4px solid transparent',
+                    boxShadow: (isMobile && activeContentCategory === cat.id) ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                     fontSize: '11px',
                     fontWeight: activeContentCategory === cat.id ? '700' : '500',
                     textAlign: 'left',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '5px',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   <IconComp size={13} />
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.label}</span>
+                  <span>{cat.label}</span>
                 </button>
               );
             })}
@@ -429,20 +452,21 @@ export default function ControlsSidebar({
             <button
               onClick={() => setShowAddSectionModal(true)}
               style={{
-                marginTop: '12px',
+                marginTop: isMobile ? '0' : '12px',
                 marginHorizontal: '8px',
-                padding: '8px 10px',
+                padding: '6px 10px',
                 background: '#7c3aed',
                 color: 'white',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: isMobile ? '20px' : '6px',
                 fontSize: '11px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                whiteSpace: 'nowrap'
               }}
             >
               <PlusCircle size={13} /> Add Section
@@ -453,14 +477,63 @@ export default function ControlsSidebar({
 
       {/* 2. SUB-PANEL EDITING CARDS */}
       <div style={{
-        width: '330px',
+        width: isMobile ? '100%' : '330px',
+        flex: isMobile ? 1 : 'none',
         backgroundColor: '#f6f5f2',
-        padding: '20px 16px',
+        padding: isMobile ? '12px' : '20px 16px',
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '14px'
       }}>
+        {/* TEMPLATE PICKER CARD AT TOP OF OVERVIEW/CUSTOMIZE */}
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '14px', border: '1px solid #e7e5e4', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: '700', color: '#0f2b5c', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <FileText size={15} color="#0f2b5c" /> Resume Template
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              onClick={() => handleStyleChange('templateId', 'blue_modern')}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: (styleSettings.templateId || 'blue_modern') === 'blue_modern' ? '2px solid #0f2b5c' : '1px solid #cbd5e1',
+                background: (styleSettings.templateId || 'blue_modern') === 'blue_modern' ? '#e8f0fe' : '#ffffff',
+                textAlign: 'left',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ fontWeight: '700', fontSize: '12px', color: '#0f2b5c', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>✨ Modern Blue Tech (Icon Badges)</span>
+                {(styleSettings.templateId || 'blue_modern') === 'blue_modern' && <CheckCircle2 size={15} color="#0f2b5c" />}
+              </div>
+              <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>
+                Dual-column header, rounded section icons, skill badge pills & bottom declaration box.
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleStyleChange('templateId', 'classic')}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: styleSettings.templateId === 'classic' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
+                background: styleSettings.templateId === 'classic' ? '#f3e8ff' : '#ffffff',
+                textAlign: 'left',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ fontWeight: '700', fontSize: '12px', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>📄 Classic Standard</span>
+                {styleSettings.templateId === 'classic' && <CheckCircle2 size={15} color="#7c3aed" />}
+              </div>
+              <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                Clean single-column centered header layout with underline rules.
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* 1-Page Optimization Indicator Card */}
         <div style={{
           backgroundColor: '#ffffff',
@@ -506,6 +579,40 @@ export default function ControlsSidebar({
             <Maximize2 size={14} /> Auto-Fit to 1 Page
           </button>
         </div>
+
+        {/* COLOR & THEMES CARD */}
+        {activeNavTab === 'customize' && activeSideCategory === 'colors' && (
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e7e5e4' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1c1917', marginBottom: '14px' }}>Theme Colors</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Primary Accent Color (Header & Badges)</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={styleSettings.primaryColor || '#0f2b5c'}
+                    onChange={e => handleStyleChange('primaryColor', e.target.value)}
+                    style={{ width: '36px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{styleSettings.primaryColor || '#0f2b5c'}</span>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Skill Pills & Box Background Color</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={styleSettings.badgeBgColor || '#e8f0fe'}
+                    onChange={e => handleStyleChange('badgeBgColor', e.target.value)}
+                    style={{ width: '36px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{styleSettings.badgeBgColor || '#e8f0fe'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* CUSTOMIZE MODE CARDS */}
         {activeNavTab === 'customize' && activeSideCategory === 'fontSize' && (
@@ -576,9 +683,7 @@ export default function ControlsSidebar({
           </div>
         )}
 
-        {/* ==================================================== */}
-        {/* CONTENT FORM MODE CARDS - ALL RESUME HEADERS INCLUDED */}
-        {/* ==================================================== */}
+        {/* CONTENT FORM MODE CARDS */}
         {activeNavTab === 'content' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
@@ -599,11 +704,21 @@ export default function ControlsSidebar({
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>Headline / Subtitle</label>
+                    <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>Headline / Degree</label>
                     <input
                       type="text"
                       value={resumeData.personalInfo.headline}
                       onChange={e => handlePersonalChange('headline', e.target.value)}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>Sub-Headline / Objective Line</label>
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.subHeadline || ''}
+                      onChange={e => handlePersonalChange('subHeadline', e.target.value)}
+                      placeholder="e.g. Aspiring Software Developer | Problem Solver"
                       style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
                     />
                   </div>
@@ -640,6 +755,15 @@ export default function ControlsSidebar({
                       type="text"
                       value={resumeData.personalInfo.linkedin}
                       onChange={e => handlePersonalChange('linkedin', e.target.value)}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>GitHub</label>
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.github || ''}
+                      onChange={e => handlePersonalChange('github', e.target.value)}
                       style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
                     />
                   </div>
@@ -1033,7 +1157,89 @@ export default function ControlsSidebar({
               </div>
             )}
 
-            {/* 8. ACTIVITIES CARD */}
+            {/* 8. ACHIEVEMENTS CARD */}
+            {(activeContentCategory === 'all' || activeContentCategory === 'achievements') && (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e7e5e4' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1c1917', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Trophy size={16} color="#7c3aed" /> Achievements
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(resumeData.achievements?.bullets || []).map((b, bIdx) => (
+                    <div key={bIdx} style={{ display: 'flex', gap: '4px' }}>
+                      <input
+                        type="text"
+                        value={b}
+                        onChange={e => {
+                          const newB = [...(resumeData.achievements?.bullets || [])];
+                          newB[bIdx] = e.target.value;
+                          setResumeData(prev => ({ ...prev, achievements: { ...prev.achievements, bullets: newB } }));
+                        }}
+                        style={{ flex: 1, padding: '6px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12px' }}
+                      />
+                      <button
+                        onClick={() => {
+                          const newB = resumeData.achievements.bullets.filter((_, i) => i !== bIdx);
+                          setResumeData(prev => ({ ...prev, achievements: { ...prev.achievements, bullets: newB } }));
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const newB = [...(resumeData.achievements?.bullets || []), "New achievement point..."];
+                      setResumeData(prev => ({ ...prev, achievements: { ...prev.achievements, bullets: newB } }));
+                    }}
+                    style={{ marginTop: '4px', padding: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Plus size={12} /> Add Achievement
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 9. SOFT SKILLS CARD */}
+            {(activeContentCategory === 'all' || activeContentCategory === 'softSkills') && (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e7e5e4' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1c1917', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <User size={16} color="#7c3aed" /> Soft Skills
+                </h2>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>Soft Skills List (Pipe Separated)</label>
+                  <input
+                    type="text"
+                    value={resumeData.softSkills?.items || ''}
+                    onChange={e => setResumeData(prev => ({ ...prev, softSkills: { ...prev.softSkills, items: e.target.value } }))}
+                    placeholder="Problem Solving | Communication | Teamwork"
+                    style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 10. DECLARATION CARD */}
+            {(activeContentCategory === 'all' || activeContentCategory === 'declaration') && (
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e7e5e4' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1c1917', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle2 size={16} color="#7c3aed" /> Declaration Banner
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#78716c', fontWeight: '600' }}>Declaration Text</label>
+                    <textarea
+                      rows={3}
+                      value={resumeData.declaration?.text || ''}
+                      onChange={e => setResumeData(prev => ({ ...prev, declaration: { ...prev.declaration, text: e.target.value } }))}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 11. ACTIVITIES CARD */}
             {(activeContentCategory === 'all' || activeContentCategory === 'activities') && (
               <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e7e5e4' }}>
                 <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1c1917', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>

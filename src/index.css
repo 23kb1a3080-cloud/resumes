@@ -148,10 +148,13 @@ body {
   padding: 4px;
   border-radius: 8px;
   flex: 1;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .segmented-step {
   flex: 1;
+  min-width: 16px;
   height: 24px;
   border-radius: 4px;
   cursor: pointer;
@@ -178,6 +181,7 @@ body {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 }
 
@@ -188,4 +192,20 @@ body {
 
 .stepper-btn:active {
   transform: scale(0.95);
+}
+
+/* Mobile responsive layout helpers */
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .print-area-wrapper {
+    padding: 16px 8px 80px 8px !important;
+  }
+
+  .page-break-label {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
 }
